@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body { font: 12px Arial;}
+
+path { 
+ stroke: green;
+ stroke-width: 2;
+ fill: none;
+}
+
+.axis path,
+.axis line {
+ fill: none;
+ stroke: grey;
+ stroke-width: 1;
+ shape-rendering: crispEdges;
+}
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+.grid path {
+      stroke-width: 0;
+}
+</style>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+var margin = {top: 30, right: 50, bottom: 30, left: 50},
+ width = 900 - margin.left - margin.right,
+ height = 500 - margin.top - margin.bottom;
+
+var parseDate = d3.time.format("%b").parse;
+
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+var xAxis = d3.svg.axis().scale(x)
+ .orient("bottom").ticks(5)
+ .tickFormat(d3.format(',.0d'));
+ 
+
+var yAxis = d3.svg.axis().scale(y)
+ .orient("left").ticks(10)
+ .tickFormat(d3.format(',.f'));
+
+var valueline = d3.svg.line()
+ .x(function(d) { return x(d.Day); })
+ .y(function(d) { return y(d.Weight); });
+ 
+var svg = d3.select("body")
+ .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+ .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+function make_x_axis() {        
+    return d3.svg.axis()
+        .scale(x)
+         .orient("bottom")
+         .ticks(10)
+}
+
+function make_y_axis() {        
+    return d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(20)
+}
+
+d3.tsv("aonWt2.tsv", function(error, data) {
+ data.forEach(function(d) {
+  d.Day = +d.Day;
+  d.Weight = +d.Weight;
+ });
+
+ // Scale the range of the data
+ x.domain(d3.extent(data, function(d) { return d.Day; }));
+ y.domain([63, 68]);
+
+ svg.append("path")  // Add the valueline path.
+  .attr("class", "line")
+  .attr("d", valueline(data));
+
+ svg.append("g")   // Add the X Axis
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
+
+ svg.append("g")   // Add the Y Axis
+  .attr("class", "y axis")
+  .call(yAxis);
+
+ svg.append("text")
+  .attr("transform", "translate(" + (width+3) + "," + y(data[data.length-1].Weight) + ")")
+  .attr("dy", ".35em")
+  .attr("text-anchor", "start")
+  .style("fill", "green")
+  .text("Weight");
+  
+
+});
+
+</script>
+</body>
